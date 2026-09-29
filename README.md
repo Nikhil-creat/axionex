@@ -3,8 +3,11 @@
 **Autonomous commerce intelligence for D2C brands** — agentic pricing, inventory coordination and risk
 auditing, backed by real-time RAG, a CNN vision pipeline, Redis Streams eventing and PostGIS spatial routing.
 
-> Designed and developed by **NIKHIL CHARY SRIRAMOJU**
-> [GitHub](https://github.com/Nikhil-creat) · [LinkedIn](https://in.linkedin.com/in/nikhil-chary-sriramoju-95041b38a) · [sriramojunikhil66@gmail.com](mailto:sriramojunikhil66@gmail.com)
+> Designed and developed by
+> # **NIKHIL CHARY SRIRAMOJU**
+> [GitHub](https://github.com/Nikhil-creat) 
+> [LinkedIn](https://in.linkedin.com/in/nikhil-chary-sriramoju-95041b38a) 
+> [sriramojunikhil66@gmail.com](mailto:sriramojunikhil66@gmail.com)
 
 ## Architecture
 
