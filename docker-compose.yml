@@ -1,0 +1,76 @@
+name: axionex
+
+x-backend-env: &backend-env
+  DATABASE_URL: postgresql+asyncpg://optimarket:optimarket@postgres:5432/optimarket
+  REDIS_URL: redis://redis:6379/0
+  QDRANT_URL: http://qdrant:6333
+  CORS_ORIGINS: '["http://localhost:3000"]'
+  WEBHOOK_SECRET: ${WEBHOOK_SECRET:-change-me-in-production}
+  ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+  LLM_MODEL: ${LLM_MODEL:-claude-sonnet-5}
+  EMBEDDING_BACKEND: ${EMBEDDING_BACKEND:-sentence-transformers}
+  CNN_BACKBONE: ${CNN_BACKBONE:-resnet50}
+  CNN_HEAD_CHECKPOINT: ${CNN_HEAD_CHECKPOINT:-}
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: optimarket
+      POSTGRES_PASSWORD: optimarket
+      POSTGRES_DB: optimarket
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U optimarket -d optimarket"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    volumes: [redisdata:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  qdrant:
+    image: qdrant/qdrant:v1.12.4
+    volumes: [qdrantdata:/qdrant/storage]
+    ports: ["6333:6333"]
+
+  backend:
+    build: { context: ./backend, target: runtime }
+    environment: *backend-env
+    ports: ["8000:8000"]
+    volumes: [modelcache:/home/app/.cache]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      qdrant: { condition: service_started }
+
+  worker:
+    build: { context: ./backend, target: runtime }
+    command: ["worker"]
+    environment:
+      <<: *backend-env
+      SEED_DEMO_DATA: "false"
+    volumes: [modelcache:/home/app/.cache]
+    depends_on:
+      backend: { condition: service_healthy }
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports: ["3000:3000"]
+    depends_on: [backend]
+
+volumes:
+  pgdata:
+  redisdata:
+  qdrantdata:
+  modelcache:
